@@ -1,0 +1,14 @@
+spring:
+  profiles:
+    active: test
+
+
+#######################################################         #配置sql语句打印
+logging:
+  level:
+    com.faceword.nio.mybatis.mapper: debug
+
+
+
+
+

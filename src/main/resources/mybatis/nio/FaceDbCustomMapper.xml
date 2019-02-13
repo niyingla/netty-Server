@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.faceword.nio.mybatis.mapper.FaceDbCustomMapper" >
+
+
+
+    <resultMap id="faceLibraryMessageBaseMap" type="com.faceword.nio.service.entity.FaceLibraryMessage" >
+        <id column="faceID" property="faceID" jdbcType="BIGINT" />
+        <result column="groupID" property="groupID" jdbcType="BIGINT" />
+        <result column="listType" property="listType" jdbcType="INTEGER" />
+        <result column="faceData" property="faceData" jdbcType="VARCHAR" />
+        <result column="pictureType" property="pictureType" jdbcType="INTEGER" />
+        <result property="faceName" column="faceName" javaType="java.lang.String"></result>
+        <result property="faceSex" column="faceSex" javaType="java.lang.Integer"></result>
+        <result property="faceBirth" column="faceBirth" javaType="java.lang.String"></result>
+        <result property="ver" column="version" javaType="java.lang.Integer"></result>
+    </resultMap>
+
+
+    <select id="findFaceLibraryList"
+            parameterType="java.util.List" resultMap="faceLibraryMessageBaseMap">
+        select face.id as faceID,db.groupId as groupID,db.faceDbType as listType ,
+        face.faceImgUrl as faceData, face.imgType as pictureType,
+        face.personName as faceName , face.personGender as faceSex , face.personBirthday as faceBirth,
+        db.`version`
+        from tb_business_personal_face face
+        left join tb_business_facedb db
+        on face.faceDbId = db.id
+         where face.status = 1
+        and db.state = 1
+         and db.groupId in
+        <foreach collection="dbList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        order by  db.groupID
+    </select>
+
+
+
+    <!-- 排除掉 人脸库没有人脸的数据-->
+    <select id="findCameraAllFaceDbList" parameterType="java.lang.String"
+            resultType="java.util.Map">
+        select db.groupId , db.version  from tb_business_surveillance sur
+        left join tb_business_facedb db
+        on sur.faceDbId = db.id
+        where sur.cameraId = #{license}
+        and db.state = 1
+        and sur.faceDbId in (
+		  	select face.faceDbId from tb_business_personal_face face
+		  	where face.`status` = 1
+		  	group by face.faceDbId
+		  	having count(*) > 0
+		  )
+
+    </select>
+
+    <select id="findAllFaceByDbId" resultType="java.lang.Long">
+         select face.id from tb_business_personal_face face
+            left join tb_business_facedb db
+            on face.faceDbId = db.id
+            where db.groupId = #{groupId}
+            and face.status = 1
+            and db.state = 1
+    </select>
+    <resultMap id="findFaceDbAllFaceListMap" type="com.faceword.nio.mybatis.model.FaceDbAllFace">
+        <id property="groupId" column="groupId" javaType="java.lang.String"></id>
+        <result property="version" column="version" javaType="java.lang.Integer"></result>
+        <result property="listType" column="faceDbType" javaType="java.lang.Integer"></result>
+        <collection property="faceList" select="findAllFaceByDbId" column="groupId" />
+    </resultMap>
+
+    <select id="findFaceDbAllFaceList" parameterType="java.util.List" resultMap="findFaceDbAllFaceListMap">
+      select groupId ,`version`,faceDbType from tb_business_facedb db
+        where db.groupId in
+        <foreach collection="groupList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and db.state = 1
+    </select>
+    
+    <resultMap id="findFaceLibraryMessageLicenseListMap" type="com.faceword.nio.service.entity.FaceLibraryMessage">
+        <id property="faceID" column="faceID" javaType="java.lang.Long"></id>
+        <result property="listType" column="listType" javaType="java.lang.Integer"></result>
+        <result property="pictureType" column="pictureType" javaType="java.lang.Integer"></result>
+        <result property="faceData" column="faceData" javaType="java.lang.String"></result>
+        <result property="groupID" column="groupID" javaType="java.lang.Long"></result>
+        <result property="faceName" column="faceName" javaType="java.lang.String"></result>
+        <result property="faceSex" column="faceSex" javaType="java.lang.Integer"></result>
+        <result property="faceBirth" column="faceBirth" javaType="java.lang.String"></result>
+        <result property="ver" column="version" javaType="java.lang.Integer"></result>
+    </resultMap>
+    
+    <select id="findFaceLibraryMessageLicenseList" resultMap="findFaceLibraryMessageLicenseListMap" parameterType="it.unimi.dsi.fastutil.longs.LongArrayList">
+      SELECT
+		db.faceDbType AS listType,
+		face.imgType AS pictureType,
+		faceImgUrl AS faceData,
+		face.id AS faceID,
+		db.groupId AS groupID,
+		face.personName AS faceName,
+		face.personGender AS faceSex,
+		face.personBirthday AS faceBirth,
+		db.version
+        FROM tb_business_personal_face face
+        LEFT JOIN tb_business_facedb db ON face.faceDbId = db.id
+        where face.id in
+        <foreach collection="faceSet" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+        and face.status = 1
+        and db.state = 1
+    </select>
+
+</mapper>

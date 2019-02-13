@@ -1,0 +1,98 @@
+#######################################################系统配置
+server:
+  port: 8080                                                  ##服务端口
+  servlet:
+    context-path: /
+
+#######################################################数据源配置
+spring:
+  application:
+    name: NETTY-SERVER                                              ##服务名称（注册到注册中心名字）
+  datasource:
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 100
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 30000
+      validation-query: select 'x'
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      filters: stat,slf4j
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      username: root
+      password: face
+      url: jdbc:mysql://127.0.0.1:3306/cameramanager?characterEncoding=utf-8&useSSL=false
+      driver-class-name: com.mysql.jdbc.Driver
+      async-init: true
+##############################rabbitmq 配置
+  rabbitmq:
+      host: 127.0.0.1
+      port: 5672
+      username: xxxxx
+      password: xxxxx
+      publisher-confirms: true
+      publisher-returns: true
+######################################################           ##配置redis
+  redis:
+      database: 0
+      host: 127.0.0.1
+      password: xxxxxxx
+      port: 6379
+      timeout: 10000
+      jedis:
+        pool:
+          max-active: 100
+          max-wait: 5000
+################################################SFTP配置信息
+sftp:
+  address: 127.0.0.1
+  port: 22
+  username: xxxxx
+  password: qweQWE123!@#
+  rootpath: /mnt/data/nginx-sftp
+  filedomain: http://127.0.0.1          ##保存文件的绝对路径
+
+############################################### netty配置
+netty:
+  port: 12345                  # netty端口
+  maxThreads: 1024            # 最大线程
+  max_frame_length: 65535    # 最大数据量
+
+##############################################BaseMybatis 配置
+mybatis:
+  mapperLocations: classpath*:BaseMybatis/*.xml,classpath*:mybatis/nio/*.xml
+  typeAliasesPackage: com.faceworld.nio.mybatis.model
+
+##############################################消息业务分发处理层
+nio:
+  faceDbDomain: http://127.0.0.1
+  ai:
+    arcsoft:                                  ##极视角AI账户接入
+      username: xxxxx                    ##用户名
+      password: xxxxx              ##密码
+
+#############################################健康检查 监控配置
+management:
+  security:
+    enabled: true                                          ##关闭验证（默认情况下只开放了health 与 info 端口，关闭验证后，其它的也可以访问了，但不安全，最好添加 security 验证）
+  endpoints:
+    web:
+      exposure:
+        include: "*"                                    ##开启所有端点（2.0.0之后默认只开放info）
+      path-mapping:
+        health: healthcheck                             ##健康检查
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+    defaults:
+      enabled: true
